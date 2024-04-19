@@ -10,9 +10,9 @@ from langchain_openai import ChatOpenAI, AzureChatOpenAI
 
 from tqdm import tqdm
 
-from gpt_translator.prompt_template import OPTIMIZE_ENGLISH_WITH_RAW_CHINESE, OPTIMIZE_ENGLISH, OPTIMIZE_CHINESE, \
+from gpt_trans.prompt_template import OPTIMIZE_ENGLISH_WITH_RAW_CHINESE, OPTIMIZE_ENGLISH, OPTIMIZE_CHINESE, \
     TRANSLATE_CHINESE, TRANSLATE_ENGLISH
-from gpt_translator.splitter.markdown_splitter import splitter_md_from_file
+from gpt_trans.splitter.markdown_splitter import splitter_md_from_file
 
 
 class ModeType(str, Enum):
@@ -98,7 +98,7 @@ def main_pipeline(input_file: str, mode: str = ModeType.DEFAULT, llm_type=LLMTyp
 
 
 def main():
-    parser = argparse.ArgumentParser(prog='gpt_translator', description='Translate using GPT Translator')
+    parser = argparse.ArgumentParser(prog='gpt_trans', description='Translate using GPT Translator')
     parser.add_argument('input_file', type=str, help='The input file to be translated or be refined')
     parser.add_argument('--mode', choices=list(ModeType), default='default',
                         help=f'Translation mode, should be one of {list(ModeType)}')

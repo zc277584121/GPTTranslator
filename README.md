@@ -3,22 +3,23 @@
 
 ## Installation
 ```shell
-git clone https://github.com/zc277584121/GPTTranslator.git
-cd GPTTranslator
-pip install .
+# 创建一个虚拟环境并激活（可选）
+python -m venv .gpt_trans_env && source .gpt_trans_env/bin/activate
+
+# 安装gpt_trans
+pip install gpt_trans
 ```
 
 ## Requirements
 准备好OpenAI的API Key，并将其添加到环境变量中。
 目前支持以下几个LLM模型：
-- OpenAI GPT3.5 请配置环境变量 `OPENAI_API_KEY`
-- OpenAI GPT4 请配置环境变量 `OPENAI_API_KEY`
+- OpenAI GPT3.5和GPT4 请配置环境变量 `OPENAI_API_KEY`
 - Azure OpenAI GPT3.5 请配置环境变量 `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, `AZURE_DEPLOYMENT`, `OPENAI_API_VERSION`
 
 ## Quickstart
 - 翻译中文的md为英文的md，并润色。
 ```shell
-gpt_translator path_to_your_md.md
+gpt_trans path_to_your_md.md
 ```
 默认会在`path_to_your_md`同级目录下生成`path_to_your_md_zh_to_en.md`结果文件和一个未润色的中间文件`path_to_your_md_zh_to_en_raw.md`。
 
@@ -28,34 +29,34 @@ gpt_translator path_to_your_md.md
 ## Usage
 - 直接翻译中文的md为英文的md，不润色。
 ```shell
-gpt_translator path_to_your_md.md --mode zh_to_en
+gpt_trans path_to_your_md.md --mode zh_to_en
 ```
 
 - 直接翻译英文的md为中文的md，不润色。
 ```shell
-gpt_translator path_to_your_md.md --mode en_to_zh
+gpt_trans path_to_your_md.md --mode en_to_zh
 ```
 
 - 润色英文md文件。
 ```shell
-gpt_translator path_to_your_md.md --mode refine_en
+gpt_trans path_to_your_md.md --mode refine_en
 ```
 
 - 润色中文md文件。
 ```shell
-gpt_translator path_to_your_md.md --mode refine_zh
+gpt_trans path_to_your_md.md --mode refine_zh
 ```
 
 ## 模型选择
 使用llm参数可以选择模型，默认为OpenAI GPT3.5。
 比如要切换成gpt4：
 ```shell
-gpt_translator path_to_your_md.md --llm gpt4
+gpt_trans path_to_your_md.md --llm gpt4
 ```
 
 ## 参数说明
 ```shell
-gpt_translator --help
+gpt_trans --help
 ```
 ```text
 usage: gpt_translator [-h] [--mode {ModeType.DEFAULT,ModeType.REFINE_ZH,ModeType.REFINE_EN,ModeType.ZH_TO_EN,ModeType.EN_TO_ZH}] [--llm {LLMType.GPT3_5,LLMType.GPT4,LLMType.AZURE_GPT3_5}] input_file
