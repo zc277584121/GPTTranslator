@@ -3,7 +3,9 @@
 
 ## Installation
 ```shell
-pip install -U gpt-translator
+git clone https://github.com/zc277584121/GPTTranslator.git
+cd GPTTranslator
+pip install .
 ```
 
 ## Requirements

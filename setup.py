@@ -15,4 +15,10 @@ setup(
     entry_points={
         'console_scripts': ['gpt_translator=gpt_translator.main:main'],
     },
+    # description='None',
+    # author='zc',
+    # author_email='277584121@qq.com',
+    # url='https://github.com/zc277584121/GPTTranslator',
+    # packages=['gpt_translator'],
+
 )
