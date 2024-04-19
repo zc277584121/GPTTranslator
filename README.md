@@ -1,4 +1,5 @@
 # GPTTranslator
+
 支持中英文markdown文件的翻译、润色。
 
 ## Installation
@@ -25,6 +26,11 @@ gpt_trans path_to_your_md.md
 
 然后可以用对比工具比较翻译前后和润色前后的差异，再手动修改润色后的结果。
 ![](imgs/comparing_screenshot.png)
+
+- 效果可参考本Readme的英文翻译版本：[English README](README_zh_to_en.md)，它的命令如下：
+```shell
+gpt_trans ./README.md
+```
 
 ## Usage
 - 直接翻译中文的md为英文的md，不润色。
