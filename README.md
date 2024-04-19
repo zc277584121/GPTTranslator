@@ -47,10 +47,10 @@ gpt_translator path_to_your_md.md --mode refine_zh
 ```
 
 ## 模型选择
-使用mode参数可以选择模型，默认为OpenAI GPT3.5。
+使用llm参数可以选择模型，默认为OpenAI GPT3.5。
 比如要切换成gpt4：
 ```shell
-gpt_translator path_to_your_md.md --mode gpt4
+gpt_translator path_to_your_md.md --llm gpt4
 ```
 
 ## 参数说明
