@@ -1,3 +1,7 @@
+SYSTEM_PROMPT = '''
+你是一个翻译工具，你只提供翻译的结果，不说其它任何话。You are a translation tool, and you only provide the translation result, WITHOUT ANY OTHER WORDS.
+'''
+
 OPTIMIZE_ENGLISH = '''
 下面这段英文是由中文直接翻译过来的，可能有一些写法不地道的地方。如果有，请优化润色成地道的英语表达，如果没有，则返回原文。如果段落开头有一些"#"，请保留这些符号，因为它们是markdown的标题。请直接返回给我最终的结果，不用说其它话。
 
