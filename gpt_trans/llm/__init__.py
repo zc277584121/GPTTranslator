@@ -10,6 +10,7 @@ class LLMType(str, Enum):
     AZURE_GPT3_5 = 'azure_gpt3.5'
     # AZURE_GPT4 = 'azure_gpt4'
     GROQ_LLAMA3 = 'groq_llama3'
+    MOONSHOT = 'moonshot'
 
 
 def select_llm(llm_type: LLMType):
@@ -26,6 +27,9 @@ def select_llm(llm_type: LLMType):
     elif llm_type == LLMType.GROQ_LLAMA3:
         from langchain_groq import ChatGroq
         model = ChatGroq(temperature=0, model_name="llama3-70b-8192")
+    elif llm_type == LLMType.MOONSHOT:
+        from langchain_community.llms.moonshot import Moonshot
+        model = Moonshot()
 
     else:  # todo: add azure gpt4
         raise ValueError(f"Unsupported language model: {llm_type}")

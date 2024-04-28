@@ -1,0 +1,27 @@
+name: Run Python Script
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run_python_script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run Python script
+      run: PYTHONPATH=./ python ./gpt_trans/main.py ./README.md --llm moonshot
+      env:
+        MOONSHOT_API_KEY: ${{ secrets.MOONSHOT_API_KEY }}

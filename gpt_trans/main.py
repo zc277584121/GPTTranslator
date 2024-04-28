@@ -34,7 +34,7 @@ def main_pipeline(
     input_file: str,
     mode: str = ModeType.DEFAULT,
     llm_type=LLMType.GPT3_5,
-    chain_batch_size: int = 2,
+    chain_batch_size: int = 1,  # todo confiragable
 ):
     input_file = os.path.abspath(input_file)
     file_dir = os.path.dirname(input_file)
@@ -107,6 +107,9 @@ def main_pipeline(
     result_doc_infos = []
     for i in tqdm(range(0, len(split_strs), chain_batch_size)):
         batch_res = chain.batch(split_strs[i : i + chain_batch_size])
+        import time
+        if llm_type == LLMType.MOONSHOT:
+            time.sleep(60)#todo
         result_doc_infos.extend(batch_res)
     result_keys = result_doc_infos[0].keys()
     for key in result_keys:
