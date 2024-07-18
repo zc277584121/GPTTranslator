@@ -19,11 +19,11 @@ from gpt_trans.prompt_template import (
 )
 from gpt_trans.prompt_template.build_template import build_prompt
 from gpt_trans.splitter.markdown_splitter import splitter_md_from_file
+from gpt_trans.utils.text_util import is_english_text
 
 
 class ModeType(str, Enum):
-    DEFAULT = "default"
-    # ALL = 'all' #todo
+    SMART = "smart"
     REFINE_ZH = "refine_zh"
     REFINE_EN = "refine_en"
     ZH_TO_EN = "zh_to_en"
@@ -32,7 +32,7 @@ class ModeType(str, Enum):
 
 def main_pipeline(
     input_file: str,
-    mode: str = ModeType.DEFAULT,
+    mode: str = ModeType.SMART,
     llm_type=LLMType.GPT3_5,
     chain_batch_size: int = 1,  # todo confiragable
 ):
@@ -49,26 +49,13 @@ def main_pipeline(
     ]
 
     print(f"Translating {input_file} using mode {mode}")
-    if mode == ModeType.DEFAULT:
-        # chain = RunnableParallel(
-        #     raw_doc=itemgetter("raw_doc"),
-        #     zh_to_en_raw=build_prompt(TRANSLATE_CHINESE) | llm | output_parser
-        # ) | RunnableParallel(
-        #     zh_to_en=build_prompt(OPTIMIZE_ENGLISH_WITH_RAW_CHINESE) | llm | output_parser,
-        #     zh_to_en_raw=itemgetter("zh_to_en_raw"),
-        # )
-        trans_zh_to_en_chain = build_prompt(TRANSLATE_CHINESE) | llm | output_parser
-        refine_zh_chain = (
-            build_prompt(OPTIMIZE_ENGLISH_WITH_RAW_CHINESE) | llm | output_parser
-        )
-        chain = (
-            {"raw_doc": RunnablePassthrough()}
-            | RunnablePassthrough.assign(zh_to_en_raw=trans_zh_to_en_chain)
-            | RunnablePassthrough.assign(zh_to_en=refine_zh_chain)
-        ).pick(["zh_to_en_raw", "zh_to_en"])
-    # elif mode == ModeType.ALL:#todo
-    #     chain = refine_zh_chain | zh_to_en_chain | refine_en_chain
-    elif mode == ModeType.REFINE_ZH:
+    if mode == ModeType.SMART:
+        if is_english_text('\n'.join(split_strs)):
+            mode = ModeType.EN_TO_ZH
+        else:
+            mode = ModeType.ZH_TO_EN
+
+    if mode == ModeType.REFINE_ZH:
         prompt = build_prompt(OPTIMIZE_CHINESE)
         chain = (
             {"raw_doc": RunnablePassthrough()}
@@ -85,13 +72,30 @@ def main_pipeline(
             | {"en_refined": output_parser}
         )
     elif mode == ModeType.ZH_TO_EN:
-        prompt = build_prompt(TRANSLATE_CHINESE)
-        chain = (
-            {"raw_doc": RunnablePassthrough()}
-            | prompt
-            | llm
-            | {"zh_to_en": output_parser}
+        # prompt = build_prompt(TRANSLATE_CHINESE)
+        # chain = (
+        #     {"raw_doc": RunnablePassthrough()}
+        #     | prompt
+        #     | llm
+        #     | {"zh_to_en": output_parser}
+        # )
+
+        # chain = RunnableParallel(
+        #     raw_doc=itemgetter("raw_doc"),
+        #     zh_to_en_raw=build_prompt(TRANSLATE_CHINESE) | llm | output_parser
+        # ) | RunnableParallel(
+        #     zh_to_en=build_prompt(OPTIMIZE_ENGLISH_WITH_RAW_CHINESE) | llm | output_parser,
+        #     zh_to_en_raw=itemgetter("zh_to_en_raw"),
+        # )
+        trans_zh_to_en_chain = build_prompt(TRANSLATE_CHINESE) | llm | output_parser
+        refine_zh_chain = (
+                build_prompt(OPTIMIZE_ENGLISH_WITH_RAW_CHINESE) | llm | output_parser
         )
+        chain = (
+                {"raw_doc": RunnablePassthrough()}
+                | RunnablePassthrough.assign(zh_to_en_raw=trans_zh_to_en_chain)
+                | RunnablePassthrough.assign(zh_to_en=refine_zh_chain)
+        ).pick(["zh_to_en_raw", "zh_to_en"])
     elif mode == ModeType.EN_TO_ZH:
         prompt = build_prompt(TRANSLATE_ENGLISH)
         chain = (
@@ -107,9 +111,6 @@ def main_pipeline(
     result_doc_infos = []
     for i in tqdm(range(0, len(split_strs), chain_batch_size)):
         batch_res = chain.batch(split_strs[i : i + chain_batch_size])
-        import time
-        if llm_type == LLMType.MOONSHOT:
-            time.sleep(60)#todo
         result_doc_infos.extend(batch_res)
     result_keys = result_doc_infos[0].keys()
     for key in result_keys:
@@ -130,7 +131,7 @@ def main():
     parser.add_argument(
         "--mode",
         choices=list(ModeType),
-        default="default",
+        default=ModeType.SMART,
         help=f"Translation mode, should be one of {list(ModeType)}",
     )
     parser.add_argument(

@@ -16,7 +16,7 @@ def _add_header_to_metadata(split_docs, headers_to_split_on):
     reversed_headers_to_split_on = {
         header: symbol for symbol, header in headers_to_split_on
     }
-    last_metadata = {list(split_docs[0].metadata.keys())[0]: ''}
+    last_metadata = {list(split_docs[0].metadata.keys())[0]: ''}#todo 当第一行没有#开头时会报错
     for split_doc in split_docs:
         showing_headers = []
         diff_list = _find_diff(last_metadata, split_doc.metadata)
