@@ -11,15 +11,20 @@ from tqdm import tqdm
 
 from gpt_trans.llm import select_llm, LLMType
 from gpt_trans.prompt_template import (
-    OPTIMIZE_ENGLISH_WITH_RAW_CHINESE,
-    OPTIMIZE_ENGLISH,
-    OPTIMIZE_CHINESE,
-    TRANSLATE_CHINESE,
-    TRANSLATE_ENGLISH,
+    OPTIMIZE_ENGLISH_WITH_RAW_CHINESE_MD,
+    OPTIMIZE_ENGLISH_WITH_RAW_CHINESE_TXT,
+    OPTIMIZE_ENGLISH_MD,
+    OPTIMIZE_ENGLISH_TXT,
+    OPTIMIZE_CHINESE_MD,
+    OPTIMIZE_CHINESE_TXT,
+    TRANSLATE_CHINESE_MD,
+    TRANSLATE_CHINESE_TXT,
+    TRANSLATE_ENGLISH_MD,
+    TRANSLATE_ENGLISH_TXT,
 )
 from gpt_trans.prompt_template.build_template import build_prompt
 from gpt_trans.splitter.markdown_splitter import splitter_md_from_file
-from gpt_trans.utils.text_util import is_english_text
+from gpt_trans.utils.text_util import is_english_text, infer_prompt_type
 
 
 class ModeType(str, Enum):
@@ -43,10 +48,13 @@ def main_pipeline(
     llm = select_llm(llm_type=llm_type)
     output_parser = StrOutputParser()
     split_docs = splitter_md_from_file(input_file)
-    split_strs = [
-        "\n" + doc.metadata["header_content"] + "\n" + doc.page_content
-        for doc in split_docs
-    ]
+    split_strs = []
+    for doc in split_docs:
+        if doc.metadata["header_content"]:
+            split_strs.append("\n" + doc.metadata["header_content"] + "\n" + doc.page_content)
+        else:
+            split_strs.append(doc.page_content)
+
 
     print(f"Translating {input_file} using mode {mode}")
     if mode == ModeType.SMART:
@@ -56,7 +64,7 @@ def main_pipeline(
             mode = ModeType.ZH_TO_EN
 
     if mode == ModeType.REFINE_ZH:
-        prompt = build_prompt(OPTIMIZE_CHINESE)
+        prompt = build_prompt(OPTIMIZE_CHINESE_MD, OPTIMIZE_CHINESE_TXT)
         chain = (
             {"raw_doc": RunnablePassthrough()}
             | prompt
@@ -64,7 +72,7 @@ def main_pipeline(
             | {"zh_refined": output_parser}
         )
     elif mode == ModeType.REFINE_EN:
-        prompt = build_prompt(OPTIMIZE_ENGLISH)
+        prompt = build_prompt(OPTIMIZE_ENGLISH_MD, OPTIMIZE_ENGLISH_TXT)
         chain = (
             {"raw_doc": RunnablePassthrough()}
             | prompt
@@ -72,24 +80,9 @@ def main_pipeline(
             | {"en_refined": output_parser}
         )
     elif mode == ModeType.ZH_TO_EN:
-        # prompt = build_prompt(TRANSLATE_CHINESE)
-        # chain = (
-        #     {"raw_doc": RunnablePassthrough()}
-        #     | prompt
-        #     | llm
-        #     | {"zh_to_en": output_parser}
-        # )
-
-        # chain = RunnableParallel(
-        #     raw_doc=itemgetter("raw_doc"),
-        #     zh_to_en_raw=build_prompt(TRANSLATE_CHINESE) | llm | output_parser
-        # ) | RunnableParallel(
-        #     zh_to_en=build_prompt(OPTIMIZE_ENGLISH_WITH_RAW_CHINESE) | llm | output_parser,
-        #     zh_to_en_raw=itemgetter("zh_to_en_raw"),
-        # )
-        trans_zh_to_en_chain = build_prompt(TRANSLATE_CHINESE) | llm | output_parser
+        trans_zh_to_en_chain = build_prompt(TRANSLATE_CHINESE_MD, TRANSLATE_CHINESE_TXT) | llm | output_parser
         refine_zh_chain = (
-                build_prompt(OPTIMIZE_ENGLISH_WITH_RAW_CHINESE) | llm | output_parser
+                build_prompt(OPTIMIZE_ENGLISH_WITH_RAW_CHINESE_MD, OPTIMIZE_ENGLISH_WITH_RAW_CHINESE_TXT) | llm | output_parser
         )
         chain = (
                 {"raw_doc": RunnablePassthrough()}
@@ -97,7 +90,7 @@ def main_pipeline(
                 | RunnablePassthrough.assign(zh_to_en=refine_zh_chain)
         ).pick(["zh_to_en_raw", "zh_to_en"])
     elif mode == ModeType.EN_TO_ZH:
-        prompt = build_prompt(TRANSLATE_ENGLISH)
+        prompt = build_prompt(TRANSLATE_ENGLISH_MD, TRANSLATE_ENGLISH_TXT)
         chain = (
             {"raw_doc": RunnablePassthrough()}
             | prompt
@@ -110,7 +103,11 @@ def main_pipeline(
 
     result_doc_infos = []
     for i in tqdm(range(0, len(split_strs), chain_batch_size)):
-        batch_res = chain.batch(split_strs[i : i + chain_batch_size])
+        batch_strs = split_strs[i : i + chain_batch_size]
+        prompt_type = infer_prompt_type(batch_strs, input_file)
+        batch_res = chain.with_config(
+            configurable={"prompt": prompt_type}
+        ).batch(batch_strs)
         result_doc_infos.extend(batch_res)
     result_keys = result_doc_infos[0].keys()
     for key in result_keys:

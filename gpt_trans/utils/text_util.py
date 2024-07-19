@@ -1,7 +1,7 @@
 import string
+from typing import List
 
-
-def is_english_text(text):
+def is_english_text(text: str) -> bool:
     english_count = 0
     chinese_count = 0
 
@@ -20,3 +20,16 @@ def is_english_text(text):
     else:
         print(f'The text is probably in Chinese.')
         return False
+
+def infer_prompt_type(batch_strs: List[str], input_file: str) -> str:
+    if not (input_file.endswith(".md") or input_file.endswith(".markdown")):
+        return "txt"
+    all_batch_is_txt = True
+    for text in batch_strs:
+        if text.strip().startswith("#"):
+            all_batch_is_txt = False
+            break
+    if all_batch_is_txt:
+        return "txt"
+    else:
+        return "md"

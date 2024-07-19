@@ -3,8 +3,15 @@ from langchain_community.document_loaders import TextLoader
 
 
 def _find_diff(last_metadata, current_metadata):
-    different_items = [(key, current_metadata[key]) for key in current_metadata if (
-            key in last_metadata and last_metadata[key] != current_metadata[key] or key not in last_metadata)]
+    different_items = [
+        (key, current_metadata[key])
+        for key in current_metadata
+        if (
+            key in last_metadata and last_metadata[key] != current_metadata[key]
+            or
+            key not in last_metadata
+        )
+    ]
     return different_items
 
 
@@ -16,7 +23,10 @@ def _add_header_to_metadata(split_docs, headers_to_split_on):
     reversed_headers_to_split_on = {
         header: symbol for symbol, header in headers_to_split_on
     }
-    last_metadata = {list(split_docs[0].metadata.keys())[0]: ''}#todo 当第一行没有#开头时会报错
+    if not split_docs[0].metadata.keys():
+        last_metadata = {}
+    else:
+        last_metadata = {list(split_docs[0].metadata.keys())[0]: ''}
     for split_doc in split_docs:
         showing_headers = []
         diff_list = _find_diff(last_metadata, split_doc.metadata)
