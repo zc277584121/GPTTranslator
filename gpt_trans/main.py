@@ -38,7 +38,7 @@ class ModeType(str, Enum):
 def main_pipeline(
     input_file: str,
     mode: str = ModeType.SMART,
-    llm_type=LLMType.GPT3_5,
+    llm_type=LLMType.GPT4,
     chain_batch_size: int = 1,  # todo confiragable
 ):
     input_file = os.path.abspath(input_file)
@@ -134,7 +134,7 @@ def main():
     parser.add_argument(
         "--llm",
         choices=list(LLMType),
-        default=LLMType.GPT3_5,
+        default=LLMType.GPT4,
         help=f"Language model to be used for translation, should be one of {list(LLMType)}",
     )
     args = parser.parse_args()
