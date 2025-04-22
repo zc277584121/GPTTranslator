@@ -70,3 +70,9 @@ optional arguments:
                         'azure_gpt3.5'>, <LLMType.GROQ_LLAMA3: 'groq_llama3'>, <LLMType.MOONSHOT: 'moonshot'>]
 
 ```
+
+```diff
+  from gpt_trans import ModeType, LLMType
+- test_0()
++ test_1()
+```
